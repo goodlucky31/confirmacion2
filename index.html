@@ -61,8 +61,8 @@
   <div id="mensaje"></div>
 
   <script>
-    const PIXEL_ID = '1575363617572088';
-    const ACCESS_TOKEN = 'EAAV6BSjGKGgBSNDrjg5y9lVk1xOb19zhyixs4nb2zePtOCYLR92ZC4sfSqLeEPFmSkjB0HcBvs3vzZANZASBvhiZA9MSKAaS1hXjVEnLvheQt7XEuFGHoy8dsMzJa5rhfEqebECaP7FRZCPlUDOKlZAUdQlsbdXiD1Va7mZCs8FmOtcEs86Y0uljKeFnnPNWfKqGAZDZD';
+    const PIXEL_ID = '1536789920782732';
+    const ACCESS_TOKEN = 'EAAcLCVnJCDoBSIsZC3KejIQF9zQOnlGjIl3zGZCggusVZCcxnB7dCh1QrgZCQHepwuAjA64ZC4x4fdCYWsqVk5ZBZCRIF40YGbzZA4vMZB8Gd1fcTnxC1NF3PLxW0fXauv52wvhec0dEX6hKauKSppxOZCyIf6M4jNnfXZBqLx8wf2nCsYQKFqsLxMZBQ1EyUWSK1WfifwZDZD';
 
     async function hashData(data) {
       const msgBuffer = new TextEncoder().encode(data.trim().toLowerCase());
@@ -111,8 +111,7 @@
           },
           user_data: user_data
         }],
-        access_token: ACCESS_TOKEN,
-        test_event_code: 'TEST17199'
+        access_token: ACCESS_TOKEN
       };
 
       fetch(`https://graph.facebook.com/v18.0/${PIXEL_ID}/events`, {
