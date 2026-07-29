@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmar Venta Casino</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: 100px auto;
+      padding: 20px;
+      background: #1a1a2e;
+      color: white;
+      border-radius: 12px;
+    }
+    h2 { text-align: center; color: #FFD700; }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      background: #FFD700;
+      color: #1a1a2e;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover { background: #FFC200; }
+    #mensaje {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎰 Confirmar Venta</h2>
+
+  <label>💰 Monto en ARS:</label>
+  <input type="number" id="monto" placeholder="Ej: 5000">
+
+  <label>👤 Nombre cliente (opcional):</label>
+  <input type="text" id="nombre" placeholder="Ej: Juan">
+
+  <button onclick="confirmarVenta()">✅ Confirmar Venta</button>
+
+  <div id="mensaje"></div>
+
+  <script>
+    const PIXEL_ID = '1575363617572088';
+    const ACCESS_TOKEN = 'EAAV6BSjGKGgBSEKQZAMYpbVEdSWXqZCj0yVzvrZClRABE3FiDVQpfvIRt0mz7k16HedWEBx524bWDrbCBqiWfvdxCymYPDhZAcH27oUPZBWpZCNpU2Y4uGsZC2ZCO1jCrxLX7kpmbBYxsesZCgm9r2kLzZBLty7AIkDneI0gc3bUVCcwUN4Se5jtMwRZBGaYq6xXXnuSQZDZD';
+
+    function confirmarVenta() {
+      const monto = document.getElementById('monto').value;
+      const nombre = document.getElementById('nombre').value;
+
+      if (!monto || monto <= 0) {
+        document.getElementById('mensaje').innerHTML = '⚠️ Ingresá un monto válido';
+        return;
+      }
+
+      const payload = {
+        data: [{
+          event_name: 'Purchase',
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: 'website',
+          custom_data: {
+            value: parseFloat(monto),
+            currency: 'ARS'
+          },
+          user_data: {
+            client_user_agent: navigator.userAgent
+          }
+        }],
+        access_token: ACCESS_TOKEN
+      };
+
+      document.getElementById('mensaje').innerHTML = '⏳ Enviando...';
+
+      fetch(`https://graph.facebook.com/v18.0/${PIXEL_ID}/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.events_received) {
+          document.getElementById('mensaje').innerHTML = '✅ Venta enviada a Meta correctamente!';
+          document.getElementById('monto').value = '';
+          document.getElementById('nombre').value = '';
+        } else {
+          document.getElementById('mensaje').innerHTML = '❌ Error: ' + JSON.stringify(d);
+        }
+      })
+      .catch(e => {
+        document.getElementById('mensaje').innerHTML = '❌ Error de conexión';
+      });
+    }
+  </script>
+</body>
+</html>
