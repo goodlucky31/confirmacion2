@@ -22,6 +22,7 @@
       border-radius: 8px;
       border: none;
       font-size: 16px;
+      box-sizing: border-box;
     }
     button {
       width: 100%;
@@ -49,8 +50,11 @@
   <label>💰 Monto en ARS:</label>
   <input type="number" id="monto" placeholder="Ej: 5000">
 
-  <label>👤 Nombre cliente (opcional):</label>
-  <input type="text" id="nombre" placeholder="Ej: Juan">
+  <label>📱 Teléfono cliente (sin espacios ni +):</label>
+  <input type="text" id="telefono" placeholder="Ej: 5491112345678">
+
+  <label>📧 Email cliente (opcional):</label>
+  <input type="email" id="email" placeholder="Ej: juan@gmail.com">
 
   <button onclick="confirmarVenta()">✅ Confirmar Venta</button>
 
@@ -58,15 +62,42 @@
 
   <script>
     const PIXEL_ID = '1575363617572088';
-    const ACCESS_TOKEN = 'EAAV6BSjGKGgBSEKQZAMYpbVEdSWXqZCj0yVzvrZClRABE3FiDVQpfvIRt0mz7k16HedWEBx524bWDrbCBqiWfvdxCymYPDhZAcH27oUPZBWpZCNpU2Y4uGsZC2ZCO1jCrxLX7kpmbBYxsesZCgm9r2kLzZBLty7AIkDneI0gc3bUVCcwUN4Se5jtMwRZBGaYq6xXXnuSQZDZD';
+    const ACCESS_TOKEN = 'PEGA_TU_TOKEN_AQUI';
 
-    function confirmarVenta() {
+    async function hashData(data) {
+      const msgBuffer = new TextEncoder().encode(data.trim().toLowerCase());
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function confirmarVenta() {
       const monto = document.getElementById('monto').value;
-      const nombre = document.getElementById('nombre').value;
+      const telefono = document.getElementById('telefono').value;
+      const email = document.getElementById('email').value;
 
       if (!monto || monto <= 0) {
         document.getElementById('mensaje').innerHTML = '⚠️ Ingresá un monto válido';
         return;
+      }
+
+      if (!telefono && !email) {
+        document.getElementById('mensaje').innerHTML = '⚠️ Ingresá al menos teléfono o email';
+        return;
+      }
+
+      document.getElementById('mensaje').innerHTML = '⏳ Enviando...';
+
+      const user_data = {
+        client_user_agent: navigator.userAgent
+      };
+
+      if (telefono) {
+        user_data.ph = [await hashData(telefono)];
+      }
+
+      if (email) {
+        user_data.em = [await hashData(email)];
       }
 
       const payload = {
@@ -78,14 +109,10 @@
             value: parseFloat(monto),
             currency: 'ARS'
           },
-          user_data: {
-            client_user_agent: navigator.userAgent
-          }
+          user_data: user_data
         }],
         access_token: ACCESS_TOKEN
       };
-
-      document.getElementById('mensaje').innerHTML = '⏳ Enviando...';
 
       fetch(`https://graph.facebook.com/v18.0/${PIXEL_ID}/events`, {
         method: 'POST',
@@ -97,7 +124,8 @@
         if (d.events_received) {
           document.getElementById('mensaje').innerHTML = '✅ Venta enviada a Meta correctamente!';
           document.getElementById('monto').value = '';
-          document.getElementById('nombre').value = '';
+          document.getElementById('telefono').value = '';
+          document.getElementById('email').value = '';
         } else {
           document.getElementById('mensaje').innerHTML = '❌ Error: ' + JSON.stringify(d);
         }
