@@ -15,10 +15,11 @@
       border-radius: 12px;
     }
     h2 { text-align: center; color: #FFD700; }
+    label { font-size: 14px; font-weight: bold; }
     input {
       width: 100%;
       padding: 12px;
-      margin: 10px 0;
+      margin: 8px 0 15px 0;
       border-radius: 8px;
       border: none;
       font-size: 16px;
@@ -41,6 +42,7 @@
       text-align: center;
       margin-top: 15px;
       font-size: 16px;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -75,18 +77,25 @@
       const monto = document.getElementById('monto').value;
       const telefono = document.getElementById('telefono').value;
       const email = document.getElementById('email').value;
+      const divMensaje = document.getElementById('mensaje');
 
       if (!monto || monto <= 0) {
-        document.getElementById('mensaje').innerHTML = '⚠️ Ingresá un monto válido';
+        divMensaje.innerHTML = '⚠️ Ingresá un monto válido';
+        divMensaje.style.color = '#ffcc00';
         return;
       }
 
       if (!telefono && !email) {
-        document.getElementById('mensaje').innerHTML = '⚠️ Ingresá al menos teléfono o email';
+        divMensaje.innerHTML = '⚠️ Ingresá al menos teléfono o email';
+        divMensaje.style.color = '#ffcc00';
         return;
       }
 
-      document.getElementById('mensaje').innerHTML = '⏳ Enviando...';
+      divMensaje.innerHTML = '⏳ Enviando a Meta...';
+      divMensaje.style.color = '#ffffff';
+
+      // Generamos un event_id único para evitar conflictos de deduplicación
+      const uniqueEventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
       const user_data = {
         client_user_agent: navigator.userAgent
@@ -104,6 +113,7 @@
         data: [{
           event_name: 'Purchase',
           event_time: Math.floor(Date.now() / 1000),
+          event_id: uniqueEventId, // Clave agregada para ordenar los datos en Meta
           action_source: 'website',
           custom_data: {
             value: parseFloat(monto),
@@ -122,16 +132,19 @@
       .then(r => r.json())
       .then(d => {
         if (d.events_received) {
-          document.getElementById('mensaje').innerHTML = '✅ Venta enviada a Meta correctamente!';
+          divMensaje.innerHTML = '✅ ¡Venta registrada y enviada con éxito!';
+          divMensaje.style.color = '#00e676';
           document.getElementById('monto').value = '';
           document.getElementById('telefono').value = '';
           document.getElementById('email').value = '';
         } else {
-          document.getElementById('mensaje').innerHTML = '❌ Error: ' + JSON.stringify(d);
+          divMensaje.innerHTML = '❌ Error de Meta: ' + (d.error ? d.error.message : JSON.stringify(d));
+          divMensaje.style.color = '#ff5252';
         }
       })
       .catch(e => {
-        document.getElementById('mensaje').innerHTML = '❌ Error de conexión';
+        divMensaje.innerHTML = '❌ Error de conexión';
+        divMensaje.style.color = '#ff5252';
       });
     }
   </script>
