@@ -8,7 +8,7 @@
     body {
       font-family: Arial, sans-serif;
       max-width: 400px;
-      margin: 100px auto;
+      margin: 80px auto;
       padding: 20px;
       background: #1a1a2e;
       color: white;
@@ -49,14 +49,14 @@
 <body>
   <h2>🎰 Confirmar Venta</h2>
 
+  <label>👤 Nombre del titular (del comprobante):</label>
+  <input type="text" id="nombre" placeholder="Ej: Juan Perez">
+
   <label>💰 Monto en ARS:</label>
   <input type="number" id="monto" placeholder="Ej: 5000">
 
   <label>📱 Teléfono cliente (sin espacios ni +):</label>
   <input type="text" id="telefono" placeholder="Ej: 5491112345678">
-
-  <label>📧 Email cliente (opcional):</label>
-  <input type="email" id="email" placeholder="Ej: juan@gmail.com">
 
   <button onclick="confirmarVenta()">✅ Confirmar Venta</button>
 
@@ -67,6 +67,7 @@
     const ACCESS_TOKEN = 'EAAcLCVnJCDoBSDYwlYeEqAmxbFmQkcHpUtWZCCRc9CUMyN0dZAhMqvq1UkQQ5fB2kQfZAcmozI2LIbWaEJZBtdKv0Dyuy3HbkDaxuEsIgxaLcNBzoLqGvZCNkXe9aqCd24lcbe6cKvVvA7VzO8bZCep73X8ydYZBEZCLOQ06ZB55vjRtT6bMDqQSWbXeVh5bkO8GJBwZDZD';
 
     async function hashData(data) {
+      if (!data) return '';
       const msgBuffer = new TextEncoder().encode(data.trim().toLowerCase());
       const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -74,9 +75,9 @@
     }
 
     async function confirmarVenta() {
+      const nombre = document.getElementById('nombre').value;
       const monto = document.getElementById('monto').value;
       const telefono = document.getElementById('telefono').value;
-      const email = document.getElementById('email').value;
       const divMensaje = document.getElementById('mensaje');
 
       if (!monto || monto <= 0) {
@@ -85,8 +86,8 @@
         return;
       }
 
-      if (!telefono && !email) {
-        divMensaje.innerHTML = '⚠️ Ingresá al menos teléfono o email';
+      if (!telefono) {
+        divMensaje.innerHTML = '⚠️ Ingresá al menos el teléfono del cliente';
         divMensaje.style.color = '#ffcc00';
         return;
       }
@@ -94,7 +95,7 @@
       divMensaje.innerHTML = '⏳ Enviando a Meta...';
       divMensaje.style.color = '#ffffff';
 
-      // Generamos un event_id único para evitar conflictos de deduplicación
+      // Generamos un event_id único para la deduplicación del Purchase
       const uniqueEventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
       const user_data = {
@@ -105,15 +106,20 @@
         user_data.ph = [await hashData(telefono)];
       }
 
-      if (email) {
-        user_data.em = [await hashData(email)];
+      // Si cargaste el nombre, lo dividimos en Nombre (fn) y Apellido (ln) automáticamente
+      if (nombre) {
+        const partes = nombre.trim().split(' ');
+        user_data.fn = [await hashData(partes[0])];
+        if (partes.length > 1) {
+          user_data.ln = [await hashData(partes[partes.length - 1])];
+        }
       }
 
       const payload = {
         data: [{
           event_name: 'Purchase',
           event_time: Math.floor(Date.now() / 1000),
-          event_id: uniqueEventId, // Clave agregada para ordenar los datos en Meta
+          event_id: uniqueEventId,
           action_source: 'website',
           custom_data: {
             value: parseFloat(monto),
@@ -134,9 +140,9 @@
         if (d.events_received) {
           divMensaje.innerHTML = '✅ ¡Venta registrada y enviada con éxito!';
           divMensaje.style.color = '#00e676';
+          document.getElementById('nombre').value = '';
           document.getElementById('monto').value = '';
           document.getElementById('telefono').value = '';
-          document.getElementById('email').value = '';
         } else {
           divMensaje.innerHTML = '❌ Error de Meta: ' + (d.error ? d.error.message : JSON.stringify(d));
           divMensaje.style.color = '#ff5252';
