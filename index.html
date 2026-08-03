@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -113,7 +113,10 @@
   <hr class="separador">
 
   <!-- OPCIONALES -->
-  <div class="seccion-titulo">🟡 Datos del cliente</div>
+  <div class="seccion-titulo">🟡 Datos del cliente y Atribución</div>
+
+  <label>🔑 Código REF de WhatsApp <span class="opcional">recomendado</span></label>
+  <input type="text" id="ref" placeholder="Ej: REF-1715830000000-a1b2c" oninput="actualizarScore()">
 
   <div class="fila-dos">
     <div>
@@ -156,6 +159,7 @@
       const campos = [
         document.getElementById('monto').value,
         document.getElementById('telefono').value,
+        document.getElementById('ref').value,
         document.getElementById('nombre').value,
         document.getElementById('apellido').value,
         document.getElementById('genero').value,
@@ -180,6 +184,7 @@
     async function confirmarVenta() {
       const monto    = document.getElementById('monto').value;
       const telefono = document.getElementById('telefono').value.trim();
+      const refCode  = document.getElementById('ref').value.trim();
       const nombre   = document.getElementById('nombre').value.trim();
       const apellido = document.getElementById('apellido').value.trim();
       const genero   = document.getElementById('genero').value;
@@ -202,13 +207,19 @@
       divMsg.innerHTML = '⏳ Enviando evento a Meta...';
       divMsg.style.color = '#ffffff';
 
-      // 1. Limpieza de teléfono (deja solo números)
+      // 1. Limpieza de teléfono (solo dígitos)
       const telefonoLimpio = telefono.replace(/\D/g, '');
 
-      // 2. Construir user_data sin cookies del operador
+      // 2. Construir user_data
       const user_data = {
         client_user_agent: navigator.userAgent
       };
+
+      // Si el operador pegó el REF, lo enviamos en external_id con hash SHA-256
+      if (refCode) {
+        const refHash = await hashData(refCode);
+        if (refHash) user_data.external_id = [refHash];
+      }
 
       const phHash = await hashData(telefonoLimpio);
       const fnHash = await hashData(nombre);
@@ -263,7 +274,7 @@
           divMsg.style.color = '#00e676';
 
           // Limpiar formulario
-          ['monto','telefono','nombre','apellido'].forEach(id => {
+          ['monto','telefono','ref','nombre','apellido'].forEach(id => {
             document.getElementById(id).value = '';
           });
           document.getElementById('genero').value = '';
