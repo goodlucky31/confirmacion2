@@ -241,7 +241,7 @@
 
       const eventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
-      // 3. Payload con test_event_code fijo
+      // 3. Payload limpio para producción (sin test_event_code)
       const payload = {
         data: [{
           event_name:       'Purchase',
@@ -255,8 +255,7 @@
           },
           user_data: user_data
         }],
-        access_token:    ACCESS_TOKEN,
-        test_event_code: ''
+        access_token: ACCESS_TOKEN
       };
 
       // 4. Envío a Meta CAPI
