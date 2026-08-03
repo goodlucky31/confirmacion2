@@ -104,7 +104,7 @@
   <!-- MODO PRUEBA META -->
   <div class="seccion-titulo" style="color: #00e676;">🧪 Código de Prueba (Meta Test)</div>
   <label>Código Test Events</label>
-  <input type="text" id="testCode" value="" placeholder="">
+  <input type="text" id="testCode" value="TEST11983" placeholder="TEST11983">
 
   <hr class="separador">
 
@@ -151,6 +151,14 @@
     // ✅ CONFIGURACIÓN GENERAL
     const PIXEL_ID     = '2141536543066953';
     const ACCESS_TOKEN = 'EAAcLCVnJCDoBSPAZBVjvVGxtaltZCF8W4cnwWhtmDApHEecR0J7KhmG0x5xT8mLqFPqTZCfQF5I1pRSQ8keLsJOExuh1srOGQm9tw3v9tTkRcEacih96DcbsTDEypZCQ5dgZAjfPoAlXFE2Xt6QQp9V9NVN5yKMsKh3KelSE27X4zdxdyHnncMeu1ntiPpylElAZDZD';
+
+    // ─── Leer Cookies de Meta ──────────────────────────────────────
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
 
     // ─── Hash SHA-256 ─────────────────────────────────────────────
     async function hashData(data) {
@@ -216,8 +224,12 @@
 
       const telefonoLimpio = telefono.replace(/\D/g, '');
 
+      // ─── Captura de datos de usuario y cookies de rastreo ───
       const user_data = {
-        client_user_agent: navigator.userAgent
+        client_user_agent: navigator.userAgent,
+        fbp: getCookie('_fbp') || sessionStorage.getItem('casino_fbp') || '',
+        fbc: getCookie('_fbc') || sessionStorage.getItem('casino_fbc') || '',
+        country: ['ar'] // ⚠️ CORREGIDO: En texto plano minúscula, sin hash
       };
 
       if (refCode) {
@@ -235,8 +247,6 @@
       if (lnHash) user_data.ln = [lnHash];
       if (geHash) user_data.ge = [geHash];
 
-      user_data.country = [await hashData('ar')];
-
       const eventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
       // 3. Payload
@@ -245,7 +255,7 @@
           event_name:       'Purchase',
           event_time:       Math.floor(Date.now() / 1000),
           event_id:         eventId,
-          action_source:     'website',
+          action_source:    'website',
           event_source_url: 'https://goodlucky31.github.io/landing/',
           custom_data: {
             value:    parseFloat(monto),
