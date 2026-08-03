@@ -101,13 +101,6 @@
 
   <hr class="separador">
 
-  <!-- MODO PRUEBA META -->
-  <div class="seccion-titulo" style="color: #00e676;">🧪 Código de Prueba (Meta Test)</div>
-  <label>Código Test Events</label>
-  <input type="text" id="testCode" value="TEST11983" placeholder="TEST11983">
-
-  <hr class="separador">
-
   <!-- OBLIGATORIOS -->
   <div class="seccion-titulo">🔴 Obligatorios</div>
 
@@ -200,7 +193,6 @@
       const monto     = document.getElementById('monto').value;
       const telefono  = document.getElementById('telefono').value.trim();
       const refCode   = document.getElementById('ref').value.trim();
-      const testCode  = document.getElementById('testCode').value.trim();
       const nombre    = document.getElementById('nombre').value.trim();
       const apellido  = document.getElementById('apellido').value.trim();
       const genero    = document.getElementById('genero').value;
@@ -229,7 +221,7 @@
         client_user_agent: navigator.userAgent,
         fbp: getCookie('_fbp') || sessionStorage.getItem('casino_fbp') || '',
         fbc: getCookie('_fbc') || sessionStorage.getItem('casino_fbc') || '',
-        country: ['ar'] // ⚠️ CORREGIDO: En texto plano minúscula, sin hash
+        country: ['ar']
       };
 
       if (refCode) {
@@ -249,7 +241,7 @@
 
       const eventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
-      // 3. Payload
+      // 3. Payload con test_event_code fijo
       const payload = {
         data: [{
           event_name:       'Purchase',
@@ -263,12 +255,9 @@
           },
           user_data: user_data
         }],
-        access_token: ACCESS_TOKEN
+        access_token:    ACCESS_TOKEN,
+        test_event_code: 'TEST11983'
       };
-
-      if (testCode) {
-        payload.test_event_code = testCode;
-      }
 
       // 4. Envío a Meta CAPI
       try {
