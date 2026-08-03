@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -101,6 +101,13 @@
 
   <hr class="separador">
 
+  <!-- MODO PRUEBA META -->
+  <div class="seccion-titulo" style="color: #00e676;">🧪 Código de Prueba (Meta Test)</div>
+  <label>Código Test Events</label>
+  <input type="text" id="testCode" value="TEST11983" placeholder="TEST11983">
+
+  <hr class="separador">
+
   <!-- OBLIGATORIOS -->
   <div class="seccion-titulo">🔴 Obligatorios</div>
 
@@ -163,7 +170,7 @@
         document.getElementById('nombre').value,
         document.getElementById('apellido').value,
         document.getElementById('genero').value,
-        'ar' // País siempre presente
+        'ar'
       ];
 
       const llenos = campos.filter(c => c && c.trim() !== '').length;
@@ -182,16 +189,16 @@
 
     // ─── Confirmar Venta ──────────────────────────────────────────
     async function confirmarVenta() {
-      const monto    = document.getElementById('monto').value;
-      const telefono = document.getElementById('telefono').value.trim();
-      const refCode  = document.getElementById('ref').value.trim();
-      const nombre   = document.getElementById('nombre').value.trim();
-      const apellido = document.getElementById('apellido').value.trim();
-      const genero   = document.getElementById('genero').value;
-      const divMsg   = document.getElementById('mensaje');
-      const btn      = document.getElementById('btnConfirmar');
+      const monto     = document.getElementById('monto').value;
+      const telefono  = document.getElementById('telefono').value.trim();
+      const refCode   = document.getElementById('ref').value.trim();
+      const testCode  = document.getElementById('testCode').value.trim();
+      const nombre    = document.getElementById('nombre').value.trim();
+      const apellido  = document.getElementById('apellido').value.trim();
+      const genero    = document.getElementById('genero').value;
+      const divMsg    = document.getElementById('mensaje');
+      const btn       = document.getElementById('btnConfirmar');
 
-      // Validaciones
       if (!monto || parseFloat(monto) <= 0) {
         divMsg.innerHTML = '⚠️ Ingresá un monto válido';
         divMsg.style.color = '#ffcc00';
@@ -207,15 +214,12 @@
       divMsg.innerHTML = '⏳ Enviando evento a Meta...';
       divMsg.style.color = '#ffffff';
 
-      // 1. Limpieza de teléfono (solo dígitos)
       const telefonoLimpio = telefono.replace(/\D/g, '');
 
-      // 2. Construir user_data
       const user_data = {
         client_user_agent: navigator.userAgent
       };
 
-      // Si el operador pegó el REF, lo enviamos en external_id con hash SHA-256
       if (refCode) {
         const refHash = await hashData(refCode);
         if (refHash) user_data.external_id = [refHash];
@@ -231,10 +235,8 @@
       if (lnHash) user_data.ln = [lnHash];
       if (geHash) user_data.ge = [geHash];
 
-      // País siempre Argentina
       user_data.country = [await hashData('ar')];
 
-      // Event ID único para la compra
       const eventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
       // 3. Payload
@@ -254,6 +256,10 @@
         access_token: ACCESS_TOKEN
       };
 
+      if (testCode) {
+        payload.test_event_code = testCode;
+      }
+
       // 4. Envío a Meta CAPI
       try {
         const response = await fetch(
@@ -268,12 +274,11 @@
 
         if (data.events_received) {
           divMsg.innerHTML = `
-            ✅ ¡Venta registrada!<br>
+            ✅ ¡Venta registrada en Meta!<br>
             <small style="color:#aaa">ID: ${eventId}</small>
           `;
           divMsg.style.color = '#00e676';
 
-          // Limpiar formulario
           ['monto','telefono','ref','nombre','apellido'].forEach(id => {
             document.getElementById(id).value = '';
           });
@@ -293,7 +298,6 @@
       }
     }
 
-    // Inicializar score al cargar
     actualizarScore();
   </script>
 
