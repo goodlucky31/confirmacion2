@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -138,7 +138,7 @@
   <div id="mensaje"></div>
 
   <script>
-    // ✅ REEMPLAZÁ SOLO ESTOS DOS VALORES
+    // ✅ CONFIGURACIÓN GENERAL
     const PIXEL_ID     = '2141536543066953';
     const ACCESS_TOKEN = 'EAAcLCVnJCDoBSPAZBVjvVGxtaltZCF8W4cnwWhtmDApHEecR0J7KhmG0x5xT8mLqFPqTZCfQF5I1pRSQ8keLsJOExuh1srOGQm9tw3v9tTkRcEacih96DcbsTDEypZCQ5dgZAjfPoAlXFE2Xt6QQp9V9NVN5yKMsKh3KelSE27X4zdxdyHnncMeu1ntiPpylElAZDZD';
 
@@ -151,24 +151,15 @@
         .map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // ─── Leer cookie ──────────────────────────────────────────────
-    function getCookie(name) {
-      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-      return match ? match[2] : null;
-    }
-
     // ─── Score en tiempo real ─────────────────────────────────────
-    // Campos con peso: monto y tel = obligatorios, resto suman
     function actualizarScore() {
       const campos = [
-        document.getElementById('monto').value,        // peso 1
-        document.getElementById('telefono').value,     // peso 1
-        document.getElementById('nombre').value,       // peso 1
-        document.getElementById('apellido').value,     // peso 1
-        document.getElementById('genero').value,       // peso 1
-        'ar',                                          // país — siempre presente
-        getCookie('_fbp'),                             // automático
-        getCookie('_fbc')                              // automático
+        document.getElementById('monto').value,
+        document.getElementById('telefono').value,
+        document.getElementById('nombre').value,
+        document.getElementById('apellido').value,
+        document.getElementById('genero').value,
+        'ar' // País siempre presente
       ];
 
       const llenos = campos.filter(c => c && c.trim() !== '').length;
@@ -177,15 +168,15 @@
       document.getElementById('scoreFill').style.width = porcentaje + '%';
 
       let label = '';
-      if (porcentaje <= 30)      label = `⚠️ Score bajo (${porcentaje}%)`;
-      else if (porcentaje <= 60) label = `🟡 Score medio (${porcentaje}%)`;
+      if (porcentaje <= 35)      label = `⚠️ Score bajo (${porcentaje}%)`;
+      else if (porcentaje <= 65) label = `🟡 Score medio (${porcentaje}%)`;
       else if (porcentaje <= 85) label = `🟢 Score bueno (${porcentaje}%)`;
       else                       label = `🏆 Score excelente (${porcentaje}%) — máximo matching`;
 
       document.getElementById('scoreLabel').textContent = label;
     }
 
-    // ─── Confirmar venta ──────────────────────────────────────────
+    // ─── Confirmar Venta ──────────────────────────────────────────
     async function confirmarVenta() {
       const monto    = document.getElementById('monto').value;
       const telefono = document.getElementById('telefono').value.trim();
@@ -195,7 +186,7 @@
       const divMsg   = document.getElementById('mensaje');
       const btn      = document.getElementById('btnConfirmar');
 
-      // ── Validaciones ──────────────────────────────────────────
+      // Validaciones
       if (!monto || parseFloat(monto) <= 0) {
         divMsg.innerHTML = '⚠️ Ingresá un monto válido';
         divMsg.style.color = '#ffcc00';
@@ -211,43 +202,38 @@
       divMsg.innerHTML = '⏳ Enviando evento a Meta...';
       divMsg.style.color = '#ffffff';
 
-      // ── Construir user_data ───────────────────────────────────
+      // 1. Limpieza de teléfono (deja solo números)
+      const telefonoLimpio = telefono.replace(/\D/g, '');
+
+      // 2. Construir user_data sin cookies del operador
       const user_data = {
         client_user_agent: navigator.userAgent
       };
 
-      // Hasheados
-      const phHash = await hashData(telefono);
+      const phHash = await hashData(telefonoLimpio);
       const fnHash = await hashData(nombre);
       const lnHash = await hashData(apellido);
       const geHash = await hashData(genero);
 
-      if (phHash) user_data.ph      = [phHash];
-      if (fnHash) user_data.fn      = [fnHash];
-      if (lnHash) user_data.ln      = [lnHash];
-      if (geHash) user_data.ge      = [geHash];
+      if (phHash) user_data.ph = [phHash];
+      if (fnHash) user_data.fn = [fnHash];
+      if (lnHash) user_data.ln = [lnHash];
+      if (geHash) user_data.ge = [geHash];
 
-      // País fijo Argentina — siempre
+      // País siempre Argentina
       user_data.country = [await hashData('ar')];
 
-      // fbp y fbc automáticos desde cookies
-      const fbp = getCookie('_fbp');
-      const fbc = getCookie('_fbc');
-      if (fbp) user_data.fbp = fbp;
-      if (fbc) user_data.fbc = fbc;
+      // Event ID único para la compra
+      const eventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
-      // ── Event ID único ────────────────────────────────────────
-      const eventId = 'purchase_' + Date.now() + '_' +
-                      Math.random().toString(36).substring(2);
-
-      // ── Payload ───────────────────────────────────────────────
+      // 3. Payload
       const payload = {
         data: [{
-          event_name:        'Purchase',
-          event_time:        Math.floor(Date.now() / 1000),
-          event_id:          eventId,
+          event_name:       'Purchase',
+          event_time:       Math.floor(Date.now() / 1000),
+          event_id:         eventId,
           action_source:     'website',
-          event_source_url:  window.location.href,
+          event_source_url: 'https://goodlucky31.github.io/landing/',
           custom_data: {
             value:    parseFloat(monto),
             currency: 'ARS'
@@ -257,10 +243,10 @@
         access_token: ACCESS_TOKEN
       };
 
-      // ── Envío a Meta CAPI ─────────────────────────────────────
+      // 4. Envío a Meta CAPI
       try {
         const response = await fetch(
-          `https://graph.facebook.com/v18.0/${PIXEL_ID}/events`,
+          `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`,
           {
             method:  'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -284,7 +270,7 @@
           actualizarScore();
 
         } else {
-          divMsg.innerHTML = '❌ Error: ' + (data.error?.message ?? JSON.stringify(data));
+          divMsg.innerHTML = '❌ Error Meta: ' + (data.error?.message ?? JSON.stringify(data));
           divMsg.style.color = '#ff5252';
         }
 
@@ -296,7 +282,7 @@
       }
     }
 
-    // Score inicial
+    // Inicializar score al cargar
     actualizarScore();
   </script>
 
