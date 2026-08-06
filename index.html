@@ -144,7 +144,6 @@
     // ✅ CONFIGURACIÓN GENERAL
     const PIXEL_ID     = '2141536543066953';
     const ACCESS_TOKEN = 'EAAcLCVnJCDoBSPAZBVjvVGxtaltZCF8W4cnwWhtmDApHEecR0J7KhmG0x5xT8mLqFPqTZCfQF5I1pRSQ8keLsJOExuh1srOGQm9tw3v9tTkRcEacih96DcbsTDEypZCQ5dgZAjfPoAlXFE2Xt6QQp9V9NVN5yKMsKh3KelSE27X4zdxdyHnncMeu1ntiPpylElAZDZD';
-    const TEST_CODE    = 'TEST94632'; // Código de prueba activo
 
     // ─── Leer Cookies de Meta ──────────────────────────────────────
     function getCookie(name) {
@@ -242,22 +241,21 @@
 
       const eventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
-      // Payload con el test_event_code incluido y URL corregida
+      // 3. Payload limpio para producción (sin test_event_code)
       const payload = {
         data: [{
           event_name:       'Purchase',
           event_time:       Math.floor(Date.now() / 1000),
           event_id:         eventId,
           action_source:    'website',
-          event_source_url: 'https://goodlucky31.github.io/',
+          event_source_url: 'https://goodlucky31.github.io/landing/',
           custom_data: {
             value:    parseFloat(monto),
             currency: 'ARS'
           },
           user_data: user_data
         }],
-        access_token: ACCESS_TOKEN,
-        test_event_code: TEST_CODE
+        access_token: ACCESS_TOKEN
       };
 
       // 4. Envío a Meta CAPI
@@ -274,7 +272,7 @@
 
         if (data.events_received) {
           divMsg.innerHTML = `
-            ✅ ¡Venta registrada (Modo Test)!<br>
+            ✅ ¡Venta registrada en Meta!<br>
             <small style="color:#aaa">ID: ${eventId}</small>
           `;
           divMsg.style.color = '#00e676';
