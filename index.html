@@ -100,13 +100,12 @@
 
   <h2>🎰 Confirmar Venta</h2>
 
-  <!-- TEST EVENT CODE BOX -->
+  <!-- Opcional: solo para depuración -->
   <div class="test-box">
-    <label style="color: #ffd27f;">🧪 Test Event Code <span class="opcional">obligatorio para probar ahora</span></label>
-    <input type="text" id="testEventCode" placeholder="Ej: TEST94632">
+    <label style="color: #ffd27f;">🧪 Test Event Code <span class="opcional">opcional</span></label>
+    <input type="text" id="testEventCode" placeholder="Dejar vacío para ventas reales">
   </div>
 
-  <!-- Barra de calidad -->
   <div class="seccion-titulo">📊 Calidad del evento</div>
   <div class="score-bar">
     <div class="score-fill" id="scoreFill" style="width:0%"></div>
@@ -115,35 +114,31 @@
 
   <hr class="separador">
 
-  <!-- OBLIGATORIOS -->
   <div class="seccion-titulo">🔴 Obligatorios</div>
-
   <label>💰 Monto en ARS:</label>
   <input type="number" id="monto" placeholder="Ej: 5000" oninput="actualizarScore()">
 
-  <label>📱 Teléfono (con código de país, sin +):</label>
+  <label>📱 Teléfono (sin +):</label>
   <input type="text" id="telefono" placeholder="Ej: 5491112345678" oninput="actualizarScore()">
 
   <hr class="separador">
 
-  <!-- OPCIONALES -->
-  <div class="seccion-titulo">🟡 Datos del cliente y Atribución</div>
-
-  <label>🔑 Código REF de WhatsApp <span class="opcional">recomendado</span></label>
-  <input type="text" id="ref" placeholder="Ej: REF-1715830000000-a1b2c" oninput="actualizarScore()">
+  <div class="seccion-titulo">🟡 Datos cliente</div>
+  <label>🔑 Código REF de WhatsApp</label>
+  <input type="text" id="ref" placeholder="Ej: REF-123456789" oninput="actualizarScore()">
 
   <div class="fila-dos">
     <div>
-      <label>👤 Nombre <span class="opcional">opcional</span></label>
-      <input type="text" id="nombre" placeholder="Juan" oninput="actualizarScore()">
+      <label>👤 Nombre</label>
+      <input type="text" id="nombre" oninput="actualizarScore()">
     </div>
     <div>
-      <label>👤 Apellido <span class="opcional">opcional</span></label>
-      <input type="text" id="apellido" placeholder="Perez" oninput="actualizarScore()">
+      <label>👤 Apellido</label>
+      <input type="text" id="apellido" oninput="actualizarScore()">
     </div>
   </div>
 
-  <label>⚧ Género <span class="opcional">opcional</span></label>
+  <label>⚧ Género</label>
   <select id="genero" onchange="actualizarScore()">
     <option value="">— No especificar —</option>
     <option value="m">👨 Masculino</option>
@@ -183,50 +178,34 @@
         document.getElementById('genero').value,
         'ar'
       ];
-
       const llenos = campos.filter(c => c && c.trim() !== '').length;
       const porcentaje = Math.round((llenos / campos.length) * 100);
-
       document.getElementById('scoreFill').style.width = porcentaje + '%';
-
-      let label = '';
-      if (porcentaje <= 35)      label = `⚠️ Score bajo (${porcentaje}%)`;
-      else if (porcentaje <= 65) label = `🟡 Score medio (${porcentaje}%)`;
-      else if (porcentaje <= 85) label = `🟢 Score bueno (${porcentaje}%)`;
-      else                       label = `🏆 Score excelente (${porcentaje}%) — máximo matching`;
-
+      let label = porcentaje <= 35 ? `⚠️ Score bajo (${porcentaje}%)` : porcentaje <= 65 ? `🟡 Score medio (${porcentaje}%)` : porcentaje <= 85 ? `🟢 Score bueno (${porcentaje}%)` : `🏆 Score excelente (${porcentaje}%)`;
       document.getElementById('scoreLabel').textContent = label;
     }
 
     async function confirmarVenta() {
-      const monto        = document.getElementById('monto').value;
-      const telefono     = document.getElementById('telefono').value.trim();
-      const refCode      = document.getElementById('ref').value.trim();
-      const nombre       = document.getElementById('nombre').value.trim();
-      const apellido     = document.getElementById('apellido').value.trim();
-      const genero       = document.getElementById('genero').value;
-      const testCode     = document.getElementById('testEventCode').value.trim();
-      
-      const divMsg       = document.getElementById('mensaje');
-      const btn          = document.getElementById('btnConfirmar');
+      const monto = document.getElementById('monto').value;
+      const telefono = document.getElementById('telefono').value.trim();
+      const refCode = document.getElementById('ref').value.trim();
+      const nombre = document.getElementById('nombre').value.trim();
+      const apellido = document.getElementById('apellido').value.trim();
+      const genero = document.getElementById('genero').value;
+      const testCode = document.getElementById('testEventCode').value.trim();
+      const divMsg = document.getElementById('mensaje');
+      const btn = document.getElementById('btnConfirmar');
 
-      if (!monto || parseFloat(monto) <= 0) {
-        divMsg.innerHTML = '⚠️ Ingresá un monto válido';
-        divMsg.style.color = '#ffcc00';
-        return;
-      }
-      if (!telefono) {
-        divMsg.innerHTML = '⚠️ El teléfono es obligatorio';
+      if (!monto || !telefono) {
+        divMsg.innerHTML = '⚠️ Monto y Teléfono son obligatorios';
         divMsg.style.color = '#ffcc00';
         return;
       }
 
       btn.disabled = true;
-      divMsg.innerHTML = '⏳ Enviando evento de prueba a Meta...';
-      divMsg.style.color = '#ffffff';
+      divMsg.innerHTML = '⏳ Enviando venta...';
 
       const telefonoLimpio = telefono.replace(/\D/g, '');
-
       const user_data = {
         client_user_agent: navigator.userAgent,
         fbp: getCookie('_fbp') || sessionStorage.getItem('casino_fbp') || '',
@@ -234,78 +213,47 @@
         country: ['ar']
       };
 
-      if (refCode) {
-        const refHash = await hashData(refCode);
-        if (refHash) user_data.external_id = [refHash];
-      }
-
-      const phHash = await hashData(telefonoLimpio);
-      const fnHash = await hashData(nombre);
-      const lnHash = await hashData(apellido);
-      const geHash = await hashData(genero);
-
-      if (phHash) user_data.ph = [phHash];
-      if (fnHash) user_data.fn = [fnHash];
-      if (lnHash) user_data.ln = [lnHash];
-      if (geHash) user_data.ge = [geHash];
-
-      const eventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+      if (refCode) user_data.external_id = [await hashData(refCode)];
+      if (telefonoLimpio) user_data.ph = [await hashData(telefonoLimpio)];
+      if (nombre) user_data.fn = [await hashData(nombre)];
+      if (apellido) user_data.ln = [await hashData(apellido)];
+      if (genero) user_data.ge = [await hashData(genero)];
 
       const eventData = {
-        event_name:        'Purchase',
-        event_time:        Math.floor(Date.now() / 1000),
-        event_id:          eventId,
-        action_source:     'website',
-        event_source_url:  'https://goodlucky31.github.io/landing/',
-        custom_data: {
-          value:    parseFloat(monto),
-          currency: 'ARS'
-        },
+        event_name: 'Purchase',
+        event_time: Math.floor(Date.now() / 1000),
+        event_id: 'purchase_' + Date.now(),
+        action_source: 'website',
+        event_source_url: 'https://goodlucky31.github.io/landing/',
+        custom_data: { value: parseFloat(monto), currency: 'ARS' },
         user_data: user_data
       };
 
-      if (testCode) {
-        eventData.test_event_code = testCode;
-      }
-
-      const payload = {
-        data: [eventData],
-        access_token: ACCESS_TOKEN
-      };
+      if (testCode) eventData.test_event_code = testCode;
 
       try {
-        const response = await fetch(
-          `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`,
-          {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body:    JSON.stringify(payload)
-          }
-        );
+        const response = await fetch(`https://graph.facebook.com/v19.0/${PIXEL_ID}/events`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: [eventData], access_token: ACCESS_TOKEN })
+        });
         const data = await response.json();
-
         if (data.events_received) {
-          divMsg.innerHTML = `
-            ✅ ¡Evento de prueba enviado a Meta!<br>
-            <small style="color:#aaa">ID: ${eventId}</small>
-          `;
+          divMsg.innerHTML = '✅ ¡Venta registrada con éxito!';
           divMsg.style.color = '#00e676';
-
+          ['monto','telefono','ref','nombre','apellido'].forEach(id => document.getElementById(id).value = '');
+          document.getElementById('genero').value = '';
+          actualizarScore();
         } else {
-          divMsg.innerHTML = '❌ Error Meta: ' + (data.error?.message ?? JSON.stringify(data));
+          divMsg.innerHTML = '❌ Error: ' + (data.error?.message ?? 'Fallo en envío');
           divMsg.style.color = '#ff5252';
         }
-
       } catch (e) {
-        divMsg.innerHTML = '❌ Error de conexión: ' + e.message;
-        divMsg.style.color = '#ff5252';
+        divMsg.innerHTML = '❌ Error de red';
       } finally {
         btn.disabled = false;
       }
     }
-
-    actualizarScore();
   </script>
-
 </body>
 </html>
