@@ -102,8 +102,8 @@
 
   <!-- TEST EVENT CODE BOX -->
   <div class="test-box">
-    <label style="color: #ffd27f;">🧪 Test Event Code <span class="opcional">para depurar en Meta</span></label>
-    <input type="text" id="testEventCode" placeholder="Ej: TEST94632 (opcional)">
+    <label style="color: #ffd27f;">🧪 Test Event Code <span class="opcional">obligatorio para probar ahora</span></label>
+    <input type="text" id="testEventCode" placeholder="Ej: TEST94632">
   </div>
 
   <!-- Barra de calidad -->
@@ -155,11 +155,9 @@
   <div id="mensaje"></div>
 
   <script>
-    // ✅ CONFIGURACIÓN GENERAL
     const PIXEL_ID     = '2141536543066953';
     const ACCESS_TOKEN = 'EAAcLCVnJCDoBSPAZBVjvVGxtaltZCF8W4cnwWhtmDApHEecR0J7KhmG0x5xT8mLqFPqTZCfQF5I1pRSQ8keLsJOExuh1srOGQm9tw3v9tTkRcEacih96DcbsTDEypZCQ5dgZAjfPoAlXFE2Xt6QQp9V9NVN5yKMsKh3KelSE27X4zdxdyHnncMeu1ntiPpylElAZDZD';
 
-    // ─── Leer Cookies de Meta ──────────────────────────────────────
     function getCookie(name) {
       const value = `; ${document.cookie}`;
       const parts = value.split(`; ${name}=`);
@@ -167,7 +165,6 @@
       return null;
     }
 
-    // ─── Hash SHA-256 ─────────────────────────────────────────────
     async function hashData(data) {
       if (!data || data.trim() === '') return null;
       const msgBuffer = new TextEncoder().encode(data.trim().toLowerCase());
@@ -176,7 +173,6 @@
         .map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // ─── Score en tiempo real ─────────────────────────────────────
     function actualizarScore() {
       const campos = [
         document.getElementById('monto').value,
@@ -202,7 +198,6 @@
       document.getElementById('scoreLabel').textContent = label;
     }
 
-    // ─── Confirmar Venta ──────────────────────────────────────────
     async function confirmarVenta() {
       const monto        = document.getElementById('monto').value;
       const telefono     = document.getElementById('telefono').value.trim();
@@ -227,12 +222,11 @@
       }
 
       btn.disabled = true;
-      divMsg.innerHTML = '⏳ Enviando evento a Meta...';
+      divMsg.innerHTML = '⏳ Enviando evento de prueba a Meta...';
       divMsg.style.color = '#ffffff';
 
       const telefonoLimpio = telefono.replace(/\D/g, '');
 
-      // ─── Captura de datos de usuario y cookies de rastreo ───
       const user_data = {
         client_user_agent: navigator.userAgent,
         fbp: getCookie('_fbp') || sessionStorage.getItem('casino_fbp') || '',
@@ -257,7 +251,6 @@
 
       const eventId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substring(2);
 
-      // 3. Payload dinámico (incluye test_event_code solo si se completa)
       const eventData = {
         event_name:        'Purchase',
         event_time:        Math.floor(Date.now() / 1000),
@@ -280,7 +273,6 @@
         access_token: ACCESS_TOKEN
       };
 
-      // 4. Envío a Meta CAPI
       try {
         const response = await fetch(
           `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`,
@@ -294,16 +286,10 @@
 
         if (data.events_received) {
           divMsg.innerHTML = `
-            ✅ ¡Venta registrada en Meta!<br>
+            ✅ ¡Evento de prueba enviado a Meta!<br>
             <small style="color:#aaa">ID: ${eventId}</small>
           `;
           divMsg.style.color = '#00e676';
-
-          ['monto','telefono','ref','nombre','apellido'].forEach(id => {
-            document.getElementById(id).value = '';
-          });
-          document.getElementById('genero').value = '';
-          actualizarScore();
 
         } else {
           divMsg.innerHTML = '❌ Error Meta: ' + (data.error?.message ?? JSON.stringify(data));
